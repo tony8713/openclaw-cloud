@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw Cloud - Deploy Your AI Agent</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+    .container { max-width: 640px; margin: 0 auto; padding: 40px 20px; }
+    h1 { font-size: 2rem; margin-bottom: 8px; color: #fff; }
+    .subtitle { color: #888; margin-bottom: 40px; font-size: 1.1rem; }
+    .step { display: none; }
+    .step.active { display: block; }
+    .step-header { font-size: 0.85rem; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+    h2 { font-size: 1.3rem; margin-bottom: 20px; color: #fff; }
+    .templates { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+    .template-card { background: #1a1a1a; border: 2px solid #333; border-radius: 12px; padding: 20px; cursor: pointer; transition: all 0.2s; }
+    .template-card:hover { border-color: #555; }
+    .template-card.selected { border-color: #4f9; background: #1a2a1a; }
+    .template-card h3 { font-size: 1rem; margin-bottom: 4px; color: #fff; }
+    .template-card p { font-size: 0.85rem; color: #888; }
+    label { display: block; font-size: 0.9rem; color: #aaa; margin-bottom: 6px; margin-top: 16px; }
+    input, textarea, select { width: 100%; padding: 12px; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; color: #fff; font-size: 1rem; outline: none; }
+    input:focus, textarea:focus, select:focus { border-color: #4f9; }
+    textarea { resize: vertical; min-height: 80px; font-family: inherit; }
+    .btn { display: inline-block; padding: 14px 32px; background: #4f9; color: #000; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: 24px; transition: background 0.2s; }
+    .btn:hover { background: #3e8; }
+    .btn:disabled { background: #333; color: #666; cursor: not-allowed; }
+    .btn-secondary { background: #333; color: #fff; margin-right: 12px; }
+    .btn-secondary:hover { background: #444; }
+    .progress { display: flex; gap: 8px; margin-bottom: 32px; }
+    .progress-dot { width: 40px; height: 4px; background: #333; border-radius: 2px; }
+    .progress-dot.done { background: #4f9; }
+    .progress-dot.current { background: #4f9; opacity: 0.5; }
+    .result { background: #1a2a1a; border: 1px solid #4f9; border-radius: 12px; padding: 24px; margin-top: 24px; }
+    .result h3 { color: #4f9; margin-bottom: 12px; }
+    .result pre { background: #0a0a0a; padding: 12px; border-radius: 8px; overflow-x: auto; font-size: 0.85rem; color: #ccc; white-space: pre-wrap; word-wrap: break-word; }
+    .error { background: #2a1a1a; border-color: #f44; }
+    .error h3 { color: #f44; }
+    .hint { font-size: 0.8rem; color: #666; margin-top: 4px; }
+    .hint a { color: #4f9; }
+    .checkbox-row { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+    .checkbox-row input { width: auto; }
+    .file-section { margin-top: 16px; }
+    .file-section summary { cursor: pointer; color: #4f9; font-weight: 600; margin-bottom: 8px; }
+    .nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+    .nav a { color: #4f9; text-decoration: none; font-size: 0.9rem; }
+    .nav a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="nav">
+      <div>
+        <h1>OpenClaw Cloud</h1>
+        <p class="subtitle">Deploy your AI agent in 60 seconds. No terminal needed.</p>
+      </div>
+      <a href="/dashboard.html">Dashboard</a>
+    </div>
+
+    <div class="progress">
+      <div class="progress-dot current" id="dot-0"></div>
+      <div class="progress-dot" id="dot-1"></div>
+      <div class="progress-dot" id="dot-2"></div>
+      <div class="progress-dot" id="dot-3"></div>
+    </div>
+
+    <!-- Step 1: Template -->
+    <div class="step active" id="step-0">
+      <div class="step-header">Step 1 of 4</div>
+      <h2>Choose your agent type</h2>
+      <div class="templates" id="templates"></div>
+      <button class="btn" onclick="nextStep()" id="btn-next-0" disabled>Continue</button>
+    </div>
+
+    <!-- Step 2: Identity -->
+    <div class="step" id="step-1">
+      <div class="step-header">Step 2 of 4</div>
+      <h2>Give your agent an identity</h2>
+      <label for="agentName">Agent name</label>
+      <input type="text" id="agentName" placeholder="e.g. Buddy, Helper, Max" maxlength="32">
+      <div id="customPersonalityWrap" style="display:none;">
+        <label for="customPersonality">Personality description</label>
+        <textarea id="customPersonality" placeholder="Describe how your agent should behave..."></textarea>
+      </div>
+      <div style="margin-top:24px;">
+        <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+        <button class="btn" onclick="nextStep()">Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Messaging -->
+    <div class="step" id="step-2">
+      <div class="step-header">Step 3 of 4</div>
+      <h2>Connect a messaging platform</h2>
+      <label for="platform">Platform</label>
+      <select id="platform" onchange="updatePlatformFields()">
+        <option value="telegram">Telegram</option>
+        <option value="discord">Discord</option>
+      </select>
+      <div id="telegramFields">
+        <label for="telegramToken">Telegram Bot Token</label>
+        <input type="text" id="telegramToken" placeholder="123456789:ABCdefGHI...">
+        <p class="hint">Get one from <a href="https://t.me/BotFather">@BotFather</a> on Telegram</p>
+      </div>
+      <div id="discordFields" style="display:none;">
+        <label for="discordToken">Discord Bot Token</label>
+        <input type="text" id="discordToken" placeholder="MTQ3NzMx...">
+        <p class="hint">Create a bot at <a href="https://discord.com/developers">Discord Developer Portal</a></p>
+      </div>
+      <div class="checkbox-row">
+        <input type="checkbox" id="allowGroups" checked>
+        <label for="allowGroups" style="margin:0;">Allow in group chats</label>
+      </div>
+      <div style="margin-top:24px;">
+        <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+        <button class="btn" onclick="nextStep()">Continue</button>
+      </div>
+    </div>
+
+    <!-- Step 4: API Key -->
+    <div class="step" id="step-3">
+      <div class="step-header">Step 4 of 4</div>
+      <h2>Add your AI provider key</h2>
+      <label for="provider">AI Provider</label>
+      <select id="provider" onchange="updateModelOptions()">
+        <option value="anthropic">Anthropic (Claude)</option>
+        <option value="openai">OpenAI (GPT)</option>
+        <option value="openrouter">OpenRouter</option>
+      </select>
+      <label for="model">Model</label>
+      <select id="model">
+        <option value="claude-sonnet-4-5">Claude Sonnet 4.5 (recommended)</option>
+        <option value="claude-opus-4-6">Claude Opus 4.6</option>
+        <option value="claude-haiku-4-5">Claude Haiku 4.5 (budget)</option>
+      </select>
+      <label for="apiKey">API Key</label>
+      <input type="password" id="apiKey" placeholder="sk-ant-...">
+      <p class="hint">Your key is stored only in your agent's config. We never log or share it.</p>
+      <div style="margin-top:24px;">
+        <button class="btn btn-secondary" onclick="prevStep()">Back</button>
+        <button class="btn" onclick="deploy()" id="btn-deploy">Deploy Agent</button>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div class="step" id="step-result"></div>
+  </div>
+
+  <script>
+    let currentStep = 0;
+    let selectedTemplate = null;
+
+    const templates = {
+      assistant: { name: 'Personal Assistant', description: 'A helpful general-purpose assistant' },
+      community: { name: 'Community Manager', description: 'Manages and engages with your community' },
+      support: { name: 'Customer Support', description: 'Handles customer questions and issues' },
+      creative: { name: 'Creative Writer', description: 'Helps with writing, brainstorming, and content' },
+      custom: { name: 'Custom Agent', description: 'Define your own personality' }
+    };
+
+    const grid = document.getElementById('templates');
+    for (const [key, tmpl] of Object.entries(templates)) {
+      const card = document.createElement('div');
+      card.className = 'template-card';
+      card.innerHTML = '<h3>' + tmpl.name + '</h3><p>' + tmpl.description + '</p>';
+      card.onclick = () => {
+        document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedTemplate = key;
+        document.getElementById('btn-next-0').disabled = false;
+        document.getElementById('customPersonalityWrap').style.display = key === 'custom' ? 'block' : 'none';
+      };
+      grid.appendChild(card);
+    }
+
+    function showStep(n) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById('step-' + (n === 4 ? 'result' : n)).classList.add('active');
+      for (let i = 0; i < 4; i++) {
+        const dot = document.getElementById('dot-' + i);
+        dot.className = 'progress-dot' + (i < n ? ' done' : i === n ? ' current' : '');
+      }
+    }
+
+    function nextStep() { currentStep++; showStep(currentStep); }
+    function prevStep() { currentStep--; showStep(currentStep); }
+
+    function updatePlatformFields() {
+      const p = document.getElementById('platform').value;
+      document.getElementById('telegramFields').style.display = p === 'telegram' ? 'block' : 'none';
+      document.getElementById('discordFields').style.display = p === 'discord' ? 'block' : 'none';
+    }
+
+    function updateModelOptions() {
+      const p = document.getElementById('provider').value;
+      const sel = document.getElementById('model');
+      sel.innerHTML = '';
+      const models = {
+        anthropic: [['claude-sonnet-4-5','Claude Sonnet 4.5 (recommended)'],['claude-opus-4-6','Claude Opus 4.6'],['claude-haiku-4-5','Claude Haiku 4.5 (budget)']],
+        openai: [['gpt-5.2','GPT-5.2 (recommended)'],['gpt-5-mini','GPT-5 Mini (budget)']],
+        openrouter: [['anthropic/claude-sonnet-4-5','Claude Sonnet 4.5'],['google/gemini-3-pro','Gemini 3 Pro'],['openai/gpt-5.2','GPT-5.2']]
+      };
+      for (const [val, label] of (models[p] || [])) {
+        const opt = document.createElement('option');
+        opt.value = val; opt.textContent = label;
+        sel.appendChild(opt);
+      }
+    }
+
+    function downloadFile(name, content) {
+      const blob = new Blob([typeof content === 'string' ? content : JSON.stringify(content, null, 2)], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      a.click();
+    }
+
+    async function deploy() {
+      const btn = document.getElementById('btn-deploy');
+      btn.disabled = true;
+      btn.textContent = 'Generating config...';
+
+      const platform = document.getElementById('platform').value;
+      const body = {
+        template: selectedTemplate,
+        agentName: document.getElementById('agentName').value || 'My Agent',
+        customPersonality: document.getElementById('customPersonality').value,
+        provider: document.getElementById('provider').value,
+        model: document.getElementById('model').value,
+        apiKey: document.getElementById('apiKey').value,
+        telegramToken: platform === 'telegram' ? document.getElementById('telegramToken').value : '',
+        discordToken: platform === 'discord' ? document.getElementById('discordToken').value : '',
+        allowGroups: document.getElementById('allowGroups').checked
+      };
+
+      try {
+        const resp = await fetch('/api/deploy', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const data = await resp.json();
+        const resultDiv = document.getElementById('step-result');
+
+        if (data.success) {
+          resultDiv.innerHTML =
+            '<div class="result">' +
+              '<h3>Agent configured!</h3>' +
+              '<p style="margin-bottom:16px">Your agent <strong>' + data.agentName + '</strong> is ready to deploy.</p>' +
+              '<p style="margin-bottom:8px;color:#aaa">Agent ID: <code>' + data.agentId + '</code></p>' +
+              '<p style="margin-bottom:16px;color:#aaa">Platform: ' + data.platform + '</p>' +
+              '<h3 style="margin-top:24px">Download your config files</h3>' +
+              '<p style="color:#aaa;margin-bottom:12px">Download these files, then run on any server with Docker:</p>' +
+              '<button class="btn btn-secondary" style="margin-top:8px" onclick=\'downloadFile("openclaw.json", ' + JSON.stringify(JSON.stringify(data.files["openclaw.json"], null, 2)) + ')\'>Download openclaw.json</button>' +
+              '<button class="btn btn-secondary" style="margin-top:8px" onclick=\'downloadFile("SOUL.md", ' + JSON.stringify(data.files["SOUL.md"]) + ')\'>Download SOUL.md</button>' +
+              '<button class="btn btn-secondary" style="margin-top:8px" onclick=\'downloadFile("docker-compose.yml", ' + JSON.stringify(data.files["docker-compose.yml"]) + ')\'>Download docker-compose.yml</button>' +
+              '<h3 style="margin-top:24px">Quick start</h3>' +
+              '<pre>mkdir my-agent && cd my-agent\n# Place downloaded files here\ndocker compose up -d</pre>' +
+            '</div>';
+        } else {
+          resultDiv.innerHTML = '<div class="result error"><h3>Configuration failed</h3><p>' + data.error + '</p></div>';
+        }
+        currentStep = 4;
+        showStep(4);
+      } catch (err) {
+        alert('Error: ' + err.message);
+        btn.disabled = false;
+        btn.textContent = 'Deploy Agent';
+      }
+    }
+  </script>
+</body>
+</html>

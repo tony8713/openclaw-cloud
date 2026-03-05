@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenClaw Cloud - Dashboard</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #e0e0e0; min-height: 100vh; }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+    h1 { font-size: 2rem; margin-bottom: 8px; color: #fff; }
+    .subtitle { color: #888; margin-bottom: 32px; font-size: 1.1rem; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px; }
+    .btn { display: inline-block; padding: 10px 20px; background: #4f9; color: #000; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-decoration: none; transition: background 0.2s; }
+    .btn:hover { background: #3e8; }
+    .btn-sm { padding: 6px 14px; font-size: 0.8rem; }
+    .btn-danger { background: #f44; color: #fff; }
+    .btn-danger:hover { background: #d33; }
+    .btn-secondary { background: #333; color: #fff; }
+    .btn-secondary:hover { background: #444; }
+    .empty { text-align: center; padding: 60px 20px; color: #666; }
+    .empty h2 { color: #888; margin-bottom: 12px; }
+    .agent-card { background: #1a1a1a; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .agent-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .agent-name { font-size: 1.2rem; font-weight: 600; color: #fff; }
+    .agent-status { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+    .status-running { background: #1a2a1a; color: #4f9; border: 1px solid #4f9; }
+    .status-provisioned { background: #2a2a1a; color: #fa0; border: 1px solid #fa0; }
+    .status-stopped { background: #2a1a1a; color: #f44; border: 1px solid #f44; }
+    .agent-meta { display: flex; gap: 20px; color: #888; font-size: 0.85rem; margin-bottom: 12px; flex-wrap: wrap; }
+    .agent-actions { display: flex; gap: 8px; }
+    .loading { text-align: center; padding: 40px; color: #666; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="top-bar">
+      <div>
+        <h1>Dashboard</h1>
+        <p class="subtitle">Manage your deployed agents</p>
+      </div>
+      <a href="/" class="btn">+ New Agent</a>
+    </div>
+    <div id="agents-list"><div class="loading">Loading agents...</div></div>
+  </div>
+  <script>
+    async function loadAgents() {
+      const resp = await fetch('/api/agents');
+      const data = await resp.json();
+      const list = document.getElementById('agents-list');
+
+      if (!data.agents || data.agents.length === 0) {
+        list.innerHTML = '<div class="empty"><h2>No agents yet</h2><p>Deploy your first agent to get started.</p><br><a href="/" class="btn">Deploy Agent</a></div>';
+        return;
+      }
+
+      list.innerHTML = data.agents.map(a => {
+        const statusClass = a.status === 'running' ? 'status-running' : a.status === 'provisioned' ? 'status-provisioned' : 'status-stopped';
+        const created = new Date(a.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        return '<div class="agent-card">' +
+          '<div class="agent-header">' +
+            '<span class="agent-name">' + a.name + '</span>' +
+            '<span class="agent-status ' + statusClass + '">' + a.status + '</span>' +
+          '</div>' +
+          '<div class="agent-meta">' +
+            '<span>ID: ' + a.id + '</span>' +
+            '<span>Platform: ' + a.platform + '</span>' +
+            '<span>Model: ' + a.model + '</span>' +
+            '<span>Created: ' + created + '</span>' +
+          '</div>' +
+          '<div class="agent-actions">' +
+            '<button class="btn btn-sm btn-secondary" onclick="restartAgent(\'' + a.id + '\')">Restart</button>' +
+            '<button class="btn btn-sm btn-danger" onclick="deleteAgent(\'' + a.id + '\')">Delete</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    async function restartAgent(id) {
+      if (!confirm('Restart this agent?')) return;
+      const resp = await fetch('/api/agents/' + id + '/restart', { method: 'POST' });
+      const data = await resp.json();
+      alert(data.success ? 'Agent restarted' : 'Error: ' + data.error);
+      loadAgents();
+    }
+
+    async function deleteAgent(id) {
+      if (!confirm('Delete this agent? This cannot be undone.')) return;
+      const resp = await fetch('/api/agents/' + id, { method: 'DELETE' });
+      const data = await resp.json();
+      alert(data.success ? 'Agent deleted' : 'Error: ' + data.error);
+      loadAgents();
+    }
+
+    loadAgents();
+  </script>
+</body>
+</html>
